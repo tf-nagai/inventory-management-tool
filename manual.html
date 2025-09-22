@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使い方ガイド - ピッキングロケーション補充計算ツール</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #27ae60;
+            padding-bottom: 10px;
+        }
+        .back-link {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .back-link a {
+            display: inline-block;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .back-link a:hover {
+            background: linear-gradient(135deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #27ae60;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #27ae60;
+        }
+        .step {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .step h4 {
+            margin-top: 0;
+            color: #27ae60;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .file-format {
+            background: #f1f2f6;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .flow-chart {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .flow-chart .arrow {
+            font-size: 24px;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        ul li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 使い方ガイド</h1>
+        
+        <div class="back-link">
+            <a href="index.html">🔙 ツールに戻る</a>
+        </div>
+
+        <div class="section">
+            <h2>🎯 このツールについて</h2>
+            <p>この「ピッキングロケーション補充計算ツール」は、倉庫において該当品番の商品を適切にピッキングロケーションに配置するための補充数量を自動計算するツールです。</p>
+            
+            <div class="success">
+                <strong>📈 メリット：</strong>
+                <ul>
+                    <li>日次出荷データに基づく科学的な在庫管理</li>
+                    <li>3日分の安全在庫を自動計算</li>
+                    <li>パレット単位での効率的な移動指示</li>
+                    <li>エクセル不要のブラウザベース計算</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 必要なファイル</h2>
+            
+            <h3>🔧 マスタファイル（一度登録すれば保持）</h3>
+            
+            <div class="step">
+                <h4>📄 該当品番.txt</h4>
+                <p>対象となる商品IDと1パレットあたりの在庫数を記載したファイル</p>
+                <div class="file-format">
+                    <strong>ファイル形式例：</strong><br>
+                    商品ID,1パレットあたり在庫数<br>
+                    3300278,96<br>
+                    3301242,72<br>
+                    3300489,192<br>
+                    1300102,120<br>
+                    3300602,80
+                </div>
+            </div>
+            
+            <div class="step">
+                <h4>📍 ロケーションマスタ_0922.csv</h4>
+                <p>倉庫内のロケーション情報を管理するマスタファイル</p>
+                <ul>
+                    <li><strong>ブロック区分 "01"</strong>：ピッキングロケーション</li>
+                    <li><strong>ブロック区分 "02"</strong>：保管ロケーション</li>
+                    <li><strong>ブロック区分 "03"</strong>：その他</li>
+                </ul>
+            </div>
+
+            <h3>📊 日次更新ファイル</h3>
+            
+            <div class="step">
+                <h4>📦 在庫0922.csv</h4>
+                <p>現在の在庫状況を記載したファイル（日次で更新）</p>
+                <ul>
+                    <li>商品ID、ブロック区分、在庫数などの情報が含まれる</li>
+                    <li>ピッキングロケと保管ロケの在庫を区別して管理</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h4>📈 前7日商品別在庫回転日数.csv</h4>
+                <p>過去7日間の出荷実績データ（日次で更新）</p>
+                <ul>
+                    <li>商品ごとの出荷数平均（日）が含まれる</li>
+                    <li>この数値を基に日次需要を計算</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 使用手順</h2>
+            
+            <div class="flow-chart">
+                <h3>📅 初回セットアップ（最初の一回だけ）</h3>
+                <div class="step">
+                    <strong>STEP 1:</strong> 該当品番.txt をアップロード<br>
+                    <span class="emoji">⬇️</span><br>
+                    <strong>STEP 2:</strong> ロケーションマスタ_0922.csv をアップロード<br>
+                    <span class="emoji">⬇️</span><br>
+                    <strong>完了!</strong> マスタデータが「登録済み」になる
+                </div>
+            </div>
+            
+            <div class="flow-chart">
+                <h3>📊 日次作業（毎日の運用）</h3>
+                <div class="step">
+                    <strong>STEP 1:</strong> 在庫0922.csv をアップロード<br>
+                    <span class="emoji">⬇️</span><br>
+                    <strong>STEP 2:</strong> 前7日商品別在庫回転日数.csv をアップロード<br>
+                    <span class="emoji">⬇️</span><br>
+                    <strong>STEP 3:</strong> 「🔄 補充必要数を計算」ボタンをクリック<br>
+                    <span class="emoji">⬇️</span><br>
+                    <strong>完了!</strong> 補充指示リストが表示される
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 結果の見方</h2>
+            
+            <h3>🎛️ マスタデータ状態表示</h3>
+            <ul>
+                <li><span style="background:#d4edda; color:#155724; padding:3px 8px; border-radius:10px;"><strong>登録済み</strong></span> - データが正常に読み込まれています</li>
+                <li><span style="background:#f8d7da; color:#721c24; padding:3px 8px; border-radius:10px;"><strong>未登録</strong></span> - データをアップロードしてください</li>
+            </ul>
+            
+            <h3>📋 計算結果テーブル</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>商品ID</strong></td>
+                        <td>該当品番の商品識別コード</td>
+                    </tr>
+                    <tr>
+                        <td><strong>日時平均</strong></td>
+                        <td>過去7日間の1日あたり平均出荷数</td>
+                    </tr>
+                    <tr>
+                        <td><strong>安全在庫（3日分）</strong></td>
+                        <td>ピッキングロケに確保すべき在庫数（日時平均×3日）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>不足数</strong></td>
+                        <td>現在のピッキングロケで足りない数量</td>
+                    </tr>
+                    <tr>
+                        <td><strong>補充パレット数</strong></td>
+                        <td>保管ロケから移動すべきパレット数</td>
+                    </tr>
+                    <tr>
+                        <td><strong>実補充数</strong></td>
+                        <td>実際に移動する商品数（パレット数×1パレ在庫数）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>1パレ在庫数</strong></td>
+                        <td>1パレットあたりの商品数</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight">
+                <strong>💡 ポイント：</strong> 不足数がある商品（黄色でハイライト）を優先的に補充してください
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ 注意事項・トラブルシューティング</h2>
+            
+            <h3>📁 ファイル関連</h3>
+            <div class="warning">
+                <ul>
+                    <li><strong>文字コード：</strong> CSVファイルはUTF-8またはShift-JISで保存してください</li>
+                    <li><strong>ファイルサイズ：</strong> 大きすぎるファイル（100MB以上）は読み込めない場合があります</li>
+                    <li><strong>ファイル形式：</strong> 拡張子が.csvまたは.txtのファイルのみ対応</li>
+                </ul>
+            </div>
+            
+            <h3>🔧 計算関連</h3>
+            <div class="warning">
+                <ul>
+                    <li><strong>データ不整合：</strong> 該当品番にない商品IDは計算対象外になります</li>
+                    <li><strong>欠損データ：</strong> 出荷実績がない商品の日時平均は0として計算されます</li>
+                    <li><strong>安全在庫：</strong> 現在は3日分固定ですが、必要に応じて調整可能です</li>
+                </ul>
+            </div>
+            
+            <h3>💻 ブラウザ関連</h3>
+            <ul>
+                <li><strong>推奨ブラウザ：</strong> Chrome、Firefox、Edge、Safari（最新版）</li>
+                <li><strong>JavaScript：</strong> 有効にする必要があります</li>
+                <li><strong>Cookie：</strong> マスタデータの保持に使用（ブラウザを閉じるまで有効）</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔄 よくある質問</h2>
+            
+            <div class="step">
+                <h4>Q: マスタデータはどのくらい保持されますか？</h4>
+                <p><strong>A:</strong> ブラウザを閉じるまで、またはページを再読み込みするまで保持されます。毎日新しくマスタファイルをアップロードする必要はありません。</p>
+            </div>
+            
+            <div class="step">
+                <h4>Q: 計算結果をファイルで保存できますか？</h4>
+                <p><strong>A:</strong> 現在はブラウザ表示のみです。必要に応じて画面をコピー＆ペーストしてExcelなどに貼り付けてください。</p>
+            </div>
+            
+            <div class="step">
+                <h4>Q: 安全在庫の日数を変更できますか？</h4>
+                <p><strong>A:</strong> 現在は3日分固定です。カスタマイズが必要でしたらシステム管理者にご相談ください。</p>
+            </div>
+            
+            <div class="step">
+                <h4>Q: エラーが出た時の対処法は？</h4>
+                <p><strong>A:</strong> まずはファイル形式と内容を確認し、ブラウザを再読み込みしてください。解決しない場合は画面のエラーメッセージを控えてシステム管理者にご連絡ください。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📞 サポート</h2>
+            <p>このツールに関するご質問や改善要望がございましたら、システム管理者までご連絡ください。</p>
+            
+            <div class="success">
+                <strong>🌟 改善提案も歓迎します！</strong><br>
+                より使いやすいツールにするため、現場の声をお聞かせください。
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">🔙 ツールに戻る</a>
+        </div>
+    </div>
+</body>
+</html>
