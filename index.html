@@ -21,9 +21,28 @@
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
+        }
+        .header-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .manual-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .manual-link:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
         }
         .section {
             margin-bottom: 25px;
@@ -185,6 +204,10 @@
 <body>
     <div class="container">
         <h1>🏪 ピッキングロケーション補充計算ツール</h1>
+        
+        <div class="header-links">
+            <a href="manual.html" target="_blank" class="manual-link">📖 使い方ガイド</a>
+        </div>
         
         <div class="section">
             <h2>📋 マスタファイル（一度登録すれば保持）</h2>
