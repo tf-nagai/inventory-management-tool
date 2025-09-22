@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ピッキングロケーション補充計算ツール</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .file-input {
+            margin-bottom: 15px;
+        }
+        .file-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        .file-input input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .secondary-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            font-size: 14px;
+            padding: 8px 20px;
+        }
+        .secondary-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+        .master-status {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .status-item {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .status-item label {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        .status-indicator {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-indicator.loaded {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-indicator.not-loaded {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result-table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .result-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .result-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .result-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .summary {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 ピッキングロケーション補充計算ツール</h1>
+        
+        <div class="section">
+            <h2>📋 マスタファイル（一度登録すれば保持）</h2>
+            <div class="master-status" id="masterStatus">
+                <div class="status-item">
+                    <span id="targetProductsStatus" class="status-indicator not-loaded">未登録</span>
+                    <label>該当品番データ</label>
+                </div>
+                <div class="status-item">
+                    <span id="locationMasterStatus" class="status-indicator not-loaded">未登録</span>
+                    <label>ロケーションマスタ</label>
+                </div>
+            </div>
+            <div class="file-input">
+                <label for="targetProducts">該当品番.txt:</label>
+                <input type="file" id="targetProducts" accept=".txt,.csv">
+            </div>
+            <div class="file-input">
+                <label for="locationMaster">ロケーションマスタ_0922.csv:</label>
+                <input type="file" id="locationMaster" accept=".csv">
+            </div>
+            <button onclick="clearMasterData()" id="clearMasterBtn" class="secondary-btn">🗑️ マスタデータをクリア</button>
+        </div>
+
+        <div class="section">
+            <h2>📊 日次更新ファイル</h2>
+            <div class="file-input">
+                <label for="inventoryData">在庫0922.csv:</label>
+                <input type="file" id="inventoryData" accept=".csv">
+            </div>
+            <div class="file-input">
+                <label for="demandData">前7日商品別在庫回転日数.csv:</label>
+                <input type="file" id="demandData" accept=".csv">
+            </div>
+        </div>
+
+        <div class="section">
+            <button onclick="calculateReplenishment()" id="calculateBtn">🔄 補充必要数を計算</button>
+        </div>
+
+        <div id="results" class="results" style="display:none;">
+            <div class="summary">
+                <h3>📈 計算結果サマリー</h3>
+                <div id="summary"></div>
+            </div>
+            <div id="detailResults"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        let targetProductsData = {};
+        let locationMasterData = [];
+        let inventoryData = [];
+        let demandData = [];
+        
+        // マスタデータの読み込み状態を管理
+        let masterDataLoaded = {
+            targetProducts: false,
+            locationMaster: false
+        };
+
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMasterStatus();
+        });
+
+        // マスタデータの状態表示を更新
+        function updateMasterStatus() {
+            const targetStatus = document.getElementById('targetProductsStatus');
+            const locationStatus = document.getElementById('locationMasterStatus');
+            
+            if (masterDataLoaded.targetProducts) {
+                targetStatus.textContent = `登録済み (${Object.keys(targetProductsData).length}件)`;
+                targetStatus.className = 'status-indicator loaded';
+            } else {
+                targetStatus.textContent = '未登録';
+                targetStatus.className = 'status-indicator not-loaded';
+            }
+            
+            if (masterDataLoaded.locationMaster) {
+                locationStatus.textContent = `登録済み (${locationMasterData.length}件)`;
+                locationStatus.className = 'status-indicator loaded';
+            } else {
+                locationStatus.textContent = '未登録';
+                locationStatus.className = 'status-indicator not-loaded';
+            }
+        }
+
+        // マスタデータをクリア
+        function clearMasterData() {
+            if (confirm('マスタデータをクリアしますか？\n（該当品番データとロケーションマスタが削除されます）')) {
+                targetProductsData = {};
+                locationMasterData = [];
+                masterDataLoaded.targetProducts = false;
+                masterDataLoaded.locationMaster = false;
+                
+                // ファイル入力をクリア
+                document.getElementById('targetProducts').value = '';
+                document.getElementById('locationMaster').value = '';
+                
+                updateMasterStatus();
+                showStatus('マスタデータをクリアしました', 'success');
+            }
+        }
+
+        // ファイル読み込み関数
+        function readFile(file, encoding = 'UTF-8') {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                if (encoding === 'Shift_JIS') {
+                    reader.readAsText(file, 'Shift_JIS');
+                } else {
+                    reader.readAsText(file, 'UTF-8');
+                }
+            });
+        }
+
+        // CSVパース関数
+        function parseCSV(csvText, hasHeader = true) {
+            return new Promise((resolve) => {
+                Papa.parse(csvText, {
+                    header: hasHeader,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: (result) => resolve(result.data),
+                    error: (error) => {
+                        console.error('CSV解析エラー:', error);
+                        resolve([]);
+                    }
+                });
+            });
+        }
+
+        // ファイルアップロード時の処理
+        document.getElementById('targetProducts').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                try {
+                    const text = await readFile(e.target.files[0]);
+                    const lines = text.split('\n').filter(line => line.trim());
+                    targetProductsData = {};
+                    
+                    // ヘッダー行をスキップして処理
+                    for (let i = 1; i < lines.length; i++) {
+                        const [productId, palletQty] = lines[i].split(',');
+                        if (productId && palletQty) {
+                            targetProductsData[productId.trim()] = parseInt(palletQty.trim()) || 0;
+                        }
+                    }
+                    masterDataLoaded.targetProducts = true;
+                    updateMasterStatus();
+                    showStatus(`該当品番データを登録しました (${Object.keys(targetProductsData).length}件)`, 'success');
+                } catch (error) {
+                    showStatus('該当品番ファイルの読み込みエラー: ' + error.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('locationMaster').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                try {
+                    const text = await readFile(e.target.files[0]);
+                    locationMasterData = await parseCSV(text);
+                    masterDataLoaded.locationMaster = true;
+                    updateMasterStatus();
+                    showStatus(`ロケーションマスタを登録しました (${locationMasterData.length}件)`, 'success');
+                } catch (error) {
+                    showStatus('ロケーションマスタの読み込みエラー: ' + error.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('inventoryData').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                try {
+                    const text = await readFile(e.target.files[0]);
+                    inventoryData = await parseCSV(text);
+                    showStatus(`在庫データを読み込みました (${inventoryData.length}件)`, 'success');
+                } catch (error) {
+                    showStatus('在庫データの読み込みエラー: ' + error.message, 'error');
+                }
+            }
+        });
+
+        document.getElementById('demandData').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                try {
+                    const text = await readFile(e.target.files[0]);
+                    demandData = await parseCSV(text);
+                    showStatus(`需要データを読み込みました (${demandData.length}件)`, 'success');
+                } catch (error) {
+                    showStatus('需要データの読み込みエラー: ' + error.message, 'error');
+                }
+            }
+        });
+
+        function showStatus(message, type) {
+            const existingStatus = document.querySelector('.status');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            document.querySelector('.container').insertBefore(statusDiv, document.querySelector('.section'));
+            
+            if (type === 'success') {
+                setTimeout(() => statusDiv.remove(), 3000);
+            }
+        }
+
+        async function calculateReplenishment() {
+            try {
+                // データの確認
+                if (!masterDataLoaded.targetProducts || Object.keys(targetProductsData).length === 0) {
+                    throw new Error('該当品番データが登録されていません');
+                }
+                if (!masterDataLoaded.locationMaster || locationMasterData.length === 0) {
+                    throw new Error('ロケーションマスタが登録されていません');
+                }
+                if (demandData.length === 0) {
+                    throw new Error('需要データが読み込まれていません');
+                }
+                if (inventoryData.length === 0) {
+                    throw new Error('在庫データが読み込まれていません');
+                }
+
+                const calculateBtn = document.getElementById('calculateBtn');
+                calculateBtn.disabled = true;
+                calculateBtn.textContent = '計算中...';
+
+                // 1. 該当品番の日次需要を計算
+                const dailyDemand = {};
+                const targetProductIds = Object.keys(targetProductsData);
+                
+                for (const productId of targetProductIds) {
+                    const productDemandData = demandData.filter(row => {
+                        const id = row['商品id'] || row['商品ID'] || row['商品ＩＤ'];
+                        return String(id) === String(productId);
+                    });
+                    
+                    if (productDemandData.length > 0) {
+                        // 最新の出荷数平均を使用
+                        const avgDaily = productDemandData[0]['出荷数平均(日)'] || productDemandData[0]['出荷数平均（日）'] || 0;
+                        dailyDemand[productId] = Math.ceil(avgDaily); // 小数点切り上げ
+                    } else {
+                        dailyDemand[productId] = 0;
+                    }
+                }
+
+                // 2. 現在の在庫状況を分析（データ構造を推測して処理）
+                const currentInventory = {};
+                const productColumn = findColumn(inventoryData[0], ['商品ID', '商品ＩＤ', '商品id']);
+                const blockColumn = findColumn(inventoryData[0], ['ブロック区分', 'ブロック分類']);
+                const qtyColumn = findColumn(inventoryData[0], ['在庫', '在庫数', '数量']);
+                const locationColumn = findColumn(inventoryData[0], ['ロケーション', 'ロケ', '倉庫ID']);
+
+                for (const productId of targetProductIds) {
+                    currentInventory[productId] = {
+                        picking: 0,    // ピッキングロケ (01)
+                        storage: 0,    // 保管ロケ (02)
+                        total: 0
+                    };
+                }
+
+                // 在庫データから集計
+                for (const row of inventoryData) {
+                    const productId = String(row[productColumn] || '');
+                    const blockType = String(row[blockColumn] || '');
+                    const qty = parseInt(row[qtyColumn] || 0);
+                    
+                    if (targetProductIds.includes(productId) && qty > 0) {
+                        if (blockType === '01' || blockType === '1') {
+                            currentInventory[productId].picking += qty;
+                        } else if (blockType === '02' || blockType === '2') {
+                            currentInventory[productId].storage += qty;
+                        }
+                        currentInventory[productId].total += qty;
+                    }
+                }
+
+                // 3. 補充必要数を計算
+                const replenishmentResults = [];
+                let totalReplenishmentNeeded = 0;
+
+                for (const productId of targetProductIds) {
+                    const daily = dailyDemand[productId];
+                    const current = currentInventory[productId];
+                    const palletQty = targetProductsData[productId];
+                    
+                    // 3日分の安全在庫を確保
+                    const safetyStock = daily * 3;
+                    const shortfall = Math.max(0, safetyStock - current.picking);
+                    const palletsNeeded = Math.ceil(shortfall / palletQty);
+                    const actualReplenishment = palletsNeeded * palletQty;
+                    
+                    if (shortfall > 0) {
+                        totalReplenishmentNeeded++;
+                    }
+                    
+                    replenishmentResults.push({
+                        productId: productId,
+                        dailyDemand: daily,
+                        safetyStock: safetyStock,
+                        currentPicking: current.picking,
+                        currentStorage: current.storage,
+                        shortfall: shortfall,
+                        palletsNeeded: palletsNeeded,
+                        actualReplenishment: actualReplenishment,
+                        palletQty: palletQty
+                    });
+                }
+
+                // 4. 結果を表示
+                displayResults(replenishmentResults, totalReplenishmentNeeded);
+                
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = '🔄 補充必要数を計算';
+                
+            } catch (error) {
+                showStatus('計算エラー: ' + error.message, 'error');
+                document.getElementById('calculateBtn').disabled = false;
+                document.getElementById('calculateBtn').textContent = '🔄 補充必要数を計算';
+            }
+        }
+
+        function findColumn(sampleRow, possibleNames) {
+            if (!sampleRow) return null;
+            const keys = Object.keys(sampleRow);
+            for (const name of possibleNames) {
+                const found = keys.find(key => key.includes(name) || key.toLowerCase().includes(name.toLowerCase()));
+                if (found) return found;
+            }
+            return keys[0]; // フォールバック
+        }
+
+        function displayResults(results, totalNeeded) {
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('summary');
+            const detailDiv = document.getElementById('detailResults');
+
+            // サマリー表示
+            summaryDiv.innerHTML = `
+                <p><strong>対象商品数:</strong> ${results.length} 件</p>
+                <p><strong>補充が必要な商品:</strong> ${totalNeeded} 件</p>
+                <p><strong>計算基準:</strong> 3日分の安全在庫</p>
+            `;
+
+            // 詳細結果表示
+            let tableHTML = `
+                <h3>📋 商品別補充計算結果</h3>
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>商品ID</th>
+                            <th>日時平均</th>
+                            <th>安全在庫<br>(3日分)</th>
+                            <th>不足数</th>
+                            <th>補充パレット数</th>
+                            <th>実補充数</th>
+                            <th>1パレ在庫数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach(result => {
+                const rowClass = result.shortfall > 0 ? 'highlight' : '';
+                tableHTML += `
+                    <tr class="${rowClass}">
+                        <td>${result.productId}</td>
+                        <td>${result.dailyDemand.toLocaleString()}</td>
+                        <td>${result.safetyStock.toLocaleString()}</td>
+                        <td>${result.shortfall.toLocaleString()}</td>
+                        <td>${result.palletsNeeded}</td>
+                        <td>${result.actualReplenishment.toLocaleString()}</td>
+                        <td>${result.palletQty}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            detailDiv.innerHTML = tableHTML;
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
