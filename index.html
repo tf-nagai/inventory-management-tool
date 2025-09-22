@@ -39,10 +39,36 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
-        .manual-link:hover {
-            background: linear-gradient(135deg, #229954, #1e8449);
+        .download-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        .download-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .section {
             margin-bottom: 25px;
@@ -203,7 +229,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏪 ピッキングロケーション補充計算ツール</h1>
+        <h1>🏪 ピッキングロケーション補充計算ツール v10</h1>
         
         <div class="header-links">
             <a href="manual.html" target="_blank" class="manual-link">📖 使い方ガイド</a>
@@ -253,16 +279,26 @@
                 <h3>📈 計算結果サマリー</h3>
                 <div id="summary"></div>
             </div>
+            
+            <div class="download-section">
+                <button onclick="downloadExcel()" id="downloadBtn" class="download-btn">📥 Excelファイルをダウンロード</button>
+                <p style="margin-top: 10px; color: #6c757d; font-size: 14px;">
+                    計算結果を Excel ファイル (.xlsx) として保存できます
+                </p>
+            </div>
+            
             <div id="detailResults"></div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         let targetProductsData = {};
         let locationMasterData = [];
         let inventoryData = [];
         let demandData = [];
+        let currentResults = []; // Excelダウンロード用の結果データを保存
         
         // マスタデータの読み込み状態を管理
         let masterDataLoaded = {
@@ -311,6 +347,90 @@
                 
                 updateMasterStatus();
                 showStatus('マスタデータをクリアしました', 'success');
+            }
+        }
+
+        // Excelダウンロード機能
+        function downloadExcel() {
+            if (currentResults.length === 0) {
+                showStatus('ダウンロードするデータがありません。まず計算を実行してください。', 'error');
+                return;
+            }
+
+            try {
+                // 現在の日時を取得
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                const dateStr = now.toLocaleDateString('ja-JP').replace(/\//g, '-');
+                
+                // Excelデータの準備
+                const worksheetData = [
+                    // ヘッダー行
+                    ['商品ID', '日時平均', '安全在庫(3日分)', '不足数', '補充パレット数', '実補充数', '1パレ在庫数'],
+                    // データ行
+                    ...currentResults.map(result => [
+                        result.productId,
+                        result.dailyDemand,
+                        result.safetyStock,
+                        result.shortfall,
+                        result.palletsNeeded,
+                        result.actualReplenishment,
+                        result.palletQty
+                    ])
+                ];
+
+                // サマリー情報を追加
+                const totalProducts = currentResults.length;
+                const replenishmentNeeded = currentResults.filter(r => r.shortfall > 0).length;
+                
+                // 空行を追加してサマリーセクションを作成
+                worksheetData.push([]);
+                worksheetData.push(['=== 計算結果サマリー ===']);
+                worksheetData.push(['対象商品数', totalProducts]);
+                worksheetData.push(['補充が必要な商品', replenishmentNeeded]);
+                worksheetData.push(['計算基準', '3日分の安全在庫']);
+                worksheetData.push(['計算実行日時', now.toLocaleString('ja-JP')]);
+
+                // ワークシートを作成
+                const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+                // カラム幅を調整
+                worksheet['!cols'] = [
+                    { width: 12 }, // 商品ID
+                    { width: 10 }, // 日時平均
+                    { width: 15 }, // 安全在庫
+                    { width: 10 }, // 不足数
+                    { width: 15 }, // 補充パレット数
+                    { width: 12 }, // 実補充数
+                    { width: 12 }  // 1パレ在庫数
+                ];
+
+                // ヘッダー行のスタイル設定（可能な範囲で）
+                const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!worksheet[cellAddress]) continue;
+                    worksheet[cellAddress].s = {
+                        font: { bold: true },
+                        fill: { fgColor: { rgb: "34495E" } }
+                    };
+                }
+
+                // ワークブックを作成
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, '補充計算結果');
+
+                // ファイル名を生成
+                const filename = `ピッキングロケーション補充計算結果_${dateStr}_${timestamp.slice(-8)}.xlsx`;
+
+                // ファイルをダウンロード
+                XLSX.writeFile(workbook, filename);
+                
+                showStatus(`Excelファイル「${filename}」をダウンロードしました`, 'success');
+
+            } catch (error) {
+                console.error('Excelダウンロードエラー:', error);
+                showStatus('Excelファイルのダウンロード中にエラーが発生しました: ' + error.message, 'error');
             }
         }
 
@@ -525,6 +645,7 @@
                 }
 
                 // 4. 結果を表示
+                currentResults = replenishmentResults; // Excelダウンロード用に保存
                 displayResults(replenishmentResults, totalReplenishmentNeeded);
                 
                 calculateBtn.disabled = false;
