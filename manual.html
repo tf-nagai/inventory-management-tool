@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>使い方ガイド - ピッキングロケーション補充計算ツール</title>
+    <title>使い方ガイド - ピッキングロケーション補充計算ツール v10</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
@@ -299,6 +299,23 @@
             <div class="highlight">
                 <strong>💡 ポイント：</strong> 不足数がある商品（黄色でハイライト）を優先的に補充してください
             </div>
+            
+            <h3>📥 Excelダウンロード機能 (v10新機能)</h3>
+            <ul>
+                <li><strong>ワンクリックダウンロード:</strong> 計算結果を.xlsxファイルとして保存</li>
+                <li><strong>自動ファイル名:</strong> 日付と時刻が自動で付与されます</li>
+                <li><strong>サマリー情報付き:</strong> 計算結果と実行日時も含まれます</li>
+                <li><strong>Excel対応:</strong> Microsoft Excel、Google Spreadsheet等で開けます</li>
+            </ul>
+            
+            <div class="success">
+                <strong>📊 Excelファイル内容:</strong>
+                <ul>
+                    <li>商品別の詳細計算結果（テーブルデータ）</li>
+                    <li>対象商品数、補充必要商品数などのサマリー</li>
+                    <li>計算基準（3日分安全在庫）と実行日時</li>
+                </ul>
+            </div>
         </div>
 
         <div class="section">
@@ -340,7 +357,12 @@
             
             <div class="step">
                 <h4>Q: 計算結果をファイルで保存できますか？</h4>
-                <p><strong>A:</strong> 現在はブラウザ表示のみです。必要に応じて画面をコピー＆ペーストしてExcelなどに貼り付けてください。</p>
+                <p><strong>A:</strong> v10から「📥 Excelファイルをダウンロード」ボタンで.xlsx形式でダウンロードできます。ファイル名には自動で日付・時刻が付与されます。</p>
+            </div>
+            
+            <div class="step">
+                <h4>Q: Excelファイルが開けません</h4>
+                <p><strong>A:</strong> Microsoft Excel、Google Spreadsheet、LibreOffice Calc等で開けます。ブラウザの設定でダウンロードが許可されているか確認してください。</p>
             </div>
             
             <div class="step">
@@ -351,16 +373,6 @@
             <div class="step">
                 <h4>Q: エラーが出た時の対処法は？</h4>
                 <p><strong>A:</strong> まずはファイル形式と内容を確認し、ブラウザを再読み込みしてください。解決しない場合は画面のエラーメッセージを控えてシステム管理者にご連絡ください。</p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>📞 サポート</h2>
-            <p>このツールに関するご質問や改善要望がございましたら、システム管理者までご連絡ください。</p>
-            
-            <div class="success">
-                <strong>🌟 改善提案も歓迎します！</strong><br>
-                より使いやすいツールにするため、現場の声をお聞かせください。
             </div>
         </div>
 
